@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>HVM Nebula - Admin</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="nebula.css">
+</head>
+<body>
+<canvas id="nebulaCanvas"></canvas>
+<div class="admin-box">
+  <h2>Admin Panel</h2>
+
+  <section>
+    <h3>Create User</h3>
+    <input id="newUser" placeholder="username">
+    <input id="newPass" placeholder="password" type="password">
+    <select id="newRole"><option value="user">user</option><option value="admin">admin</option></select>
+    <button id="createUserBtn">Create</button>
+  </section>
+
+  <section>
+    <h3>Add Server</h3>
+    <input id="svId" placeholder="id (eg server1)">
+    <input id="svName" placeholder="name">
+    <input id="svHost" placeholder="host">
+    <textarea id="svCommands" placeholder='commands JSON, e.g. {"start": {"file":"/usr/bin/sudo","args":["/bin/systemctl","start","docker@server1"]}}'></textarea>
+    <button id="addServerBtn">Add Server</button>
+  </section>
+
+  <section>
+    <h3>Assign Server to User</h3>
+    <input id="assignId" placeholder="server id">
+    <input id="assignUser" placeholder="username">
+    <button id="assignBtn">Assign</button>
+  </section>
+
+  <section>
+    <h3>Existing Servers</h3>
+    <div id="serverList"></div>
+  </section>
+
+  <p><a href="index.html" class="btn">Home</a></p>
+</div>
+
+<script>
+const token = localStorage.getItem('hvm_token');
+if(!token){ alert('Not logged in'); location.href='/login.html'; }
+
+async function api(path, method='GET', body){
+  return fetch('/api' + path, {
+    method, headers: { 'Content-Type':'application/json', 'x-token': token },
+    body: body ? JSON.stringify(body) : undefined
+  }).then(r=>r.json());
+}
+
+document.getElementById('createUserBtn').onclick = async ()=>{
+  const u = document.getElementById('newUser').value.trim();
+  const p = document.getElementById('newPass').value.trim();
+  const role = document.getElementById('newRole').value;
+  if(!u||!p){ alert('fill'); return; }
+  const res = await api('/admin/create-user','POST',{ username:u, password:p, role });
+  alert(JSON.stringify(res));
+};
+
+document.getElementById('addServerBtn').onclick = async ()=>{
+  const id = document.getElementById('svId').value.trim();
+  const name = document.getElementById('svName').value.trim();
+  const host = document.getElementById('svHost').value.trim();
+  let commands = {};
+  try{ commands = JSON.parse(document.getElementById('svCommands').value || '{}'); }catch(e){ alert('invalid JSON'); return; }
+  const res = await api('/admin/add-server','POST',{ id, name, host, commands });
+  alert(JSON.stringify(res));
+  loadServers();
+};
+
+document.getElementById('assignBtn').onclick = async ()=>{
+  const id = document.getElementById('assignId').value.trim();
+  const username = document.getElementById('assignUser').value.trim();
+  const res = await api('/admin/assign','POST',{ id, username });
+  alert(JSON.stringify(res));
+  loadServers();
+};
+
+async function loadServers(){
+  const list = await api('/servers');
+  const container = document.getElementById('serverList');
+  container.innerHTML = '';
+  list.forEach(s=>{
+    const el = document.createElement('div');
+    el.className = 'server-card';
+    el.innerHTML = '<strong>'+s.name+'</strong><br/>'+s.id+'<br/>Host: '+s.host+'<br/>Allowed: '+(s.allowedUsers||[]).join(',');
+    container.appendChild(el);
+  });
+}
+loadServers();
+</script>
+<script src="nebula.js"></script>
+</body>
+</html>

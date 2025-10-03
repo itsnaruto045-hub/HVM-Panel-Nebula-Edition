@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HVM Nebula - Dashboard</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="nebula.css">
+</head>
+<body>
+<canvas id="nebulaCanvas"></canvas>
+<div class="dashboard">
+  <h1>Dashboard</h1>
+  <div id="myServers"></div>
+  <p><a href="index.html" class="btn">Home</a></p>
+</div>
+
+<script>
+const token = localStorage.getItem('hvm_token');
+if(!token){ location.href='/login.html'; }
+async function api(path, method='GET', body){
+  return fetch('/api'+path,{method,headers:{'Content-Type':'application/json','x-token':token},body:body?JSON.stringify(body):undefined}).then(r=>r.json());
+}
+
+async function load(){
+  const list = await api('/servers');
+  const cont = document.getElementById('myServers');
+  cont.innerHTML = '';
+  list.forEach(s=>{
+    const el = document.createElement('div');
+    el.className = 'server-card';
+    el.innerHTML = '<h3>'+s.name+'</h3><p>'+s.id+' - '+s.host+'</p><div><button class="btn" onclick="action(\''+s.id+'\',\'status\')">Status</button> <button class="btn" onclick="action(\''+s.id+'\',\'start\')">Start</button> <button class="btn" onclick="action(\''+s.id+'\',\'stop\')">Stop</button></div><pre id="out-'+s.id+'"></pre>';
+    cont.appendChild(el);
+  });
+}
+
+window.action = async function(id, act){
+  const r = await api('/servers/'+id+'/action','POST',{ action: act });
+  document.getElementById('out-'+id).innerText = JSON.stringify(r, null, 2);
+}
+
+load();
+</script>
+<script src="nebula.js"></script>
+</body>
+</html>

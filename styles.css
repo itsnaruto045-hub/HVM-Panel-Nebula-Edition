@@ -1,0 +1,10 @@
+:root{
+  --bg1:#07021a; --bg2:#0f1530; --accent:#7b61ff; --muted:#aab0d6;
+}
+*{box-sizing:border-box;font-family:Inter,system-ui,Arial;margin:0}
+body{color:#fff}
+.panel-container,.login-box,.admin-box,.dashboard{position:relative;z-index:2;margin:8% auto;max-width:900px;text-align:center}
+.btn{background:var(--accent);padding:10px 16px;border-radius:8px;color:#fff;text-decoration:none;border:none;cursor:pointer;margin:6px}
+.server-card{background:rgba(255,255,255,0.03);padding:12px;border-radius:8px;margin:8px 0;text-align:left}
+input, textarea, select{padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:var(--muted);width:100%;margin:6px 0}
+.admin-box section{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;margin:8px 0}

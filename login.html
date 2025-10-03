@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HVM Nebula - Login</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="nebula.css">
+</head>
+<body>
+  <canvas id="nebulaCanvas"></canvas>
+
+  <div class="login-box">
+    <h2>Login to HVM Nebula</h2>
+    <form id="loginForm">
+      <input id="username" type="text" placeholder="Username" required>
+      <input id="password" type="password" placeholder="Password" required>
+      <button type="submit" class="btn">Login</button>
+    </form>
+    <p><a href="index.html" class="btn">Home</a></p>
+  </div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+  if(data.token){
+    localStorage.setItem('hvm_token', data.token);
+    localStorage.setItem('hvm_user', data.username);
+    if(data.role === 'admin') location.href = '/admin.html';
+    else location.href = '/dashboard.html';
+  } else {
+    alert('Login failed: ' + (data.error || 'invalid credentials'));
+  }
+});
+</script>
+<script src="nebula.js"></script>
+</body>
+</html>
